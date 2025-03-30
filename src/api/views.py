@@ -8,6 +8,25 @@ from django.http import HttpResponse
 from django.utils import timezone
 import time
 
+
+
+_START_TIME = time.time()
+
+class LivenessView(APIView):
+    def get(self, request):
+        return JsonResponse({'status': 'OK'}, status=200)
+
+
+class ReadinessView(APIView):
+    def get(self, request):
+        if time.time() < _START_TIME + 60:
+            return JsonResponse(
+                {'status': 'initializing', 'seconds_remaining': int(60 - (time.time() - _START_TIME))}, 
+                status=503
+            )
+        return JsonResponse({'status': 'READY'}, status=200)
+
+
 class IsCreatorOrReadOnly(permissions.BasePermission):
     """
     Object-level permission to only allow owners of an object to edit it.
